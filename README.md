@@ -38,6 +38,7 @@ At school we have to hand in a flowchart and time-complexity chart for every alg
 backend/
   app.py          FastAPI server
   flowchart.py    flowchart engine (also works as a command-line tool)
+  chart.py        time-complexity chart
 web/              React + Vite + Tailwind frontend
 docs/             images for this README
 ```
@@ -61,7 +62,7 @@ docs/             images for this README
 
 ```bash
 cd backend
-pip install fastapi uvicorn python-multipart graphviz
+pip install fastapi uvicorn python-multipart graphviz matplotlib numpy
 uvicorn app:app --reload
 ```
 
@@ -83,7 +84,7 @@ The website runs at http://localhost:5173.
 |---|---|---|
 | `GET` | `/health` | Health check, returns `{"status": "ok"}` |
 | `POST` | `/create/flowchart` | Upload code, get the flowchart image |
-| `POST` | `/create/chart` | Time-complexity chart *(not implemented yet)* |
+| `POST` | `/create/chart` | Send measured steps, get a time-complexity chart |
 
 ### `POST /create/flowchart`
 
@@ -120,6 +121,30 @@ Errors come back as JSON, `{"detail": "..."}`:
 | `422` | Unknown `lang` or `format` value |
 | `500` | Graphviz is not installed on the server |
 
+### `POST /create/chart`
+
+Send the input sizes and the number of steps your algorithm took for each size as JSON. The response is the chart image.
+
+| Field | Type | Default | Meaning |
+|---|---|---|---|
+| `x` | list of numbers | required | Input sizes, 2 to 1000 values |
+| `y` | list of numbers | required | Measured steps for each size, same length as `x` |
+| `time_complexity` | `O(1)`, `O(log n)`, `O(n)`, `O(n log n)`, `O(n**2)`, `O(n**3)` | `O(n)` | Reference curve to compare with |
+| `time_chart` | bool | `true` | Draw the reference curve |
+| `label` | string | `Your algorithm` | Legend name of your line |
+| `title`, `x_label`, `y_label` | string | automatic | Chart texts |
+| `format` | `png`, `svg`, `pdf` | `png` | Image format |
+
+The reference curve is **scaled automatically**. Big-O ignores constant factors, so bubble sort really does about n²/4 swaps, and a plain n² curve would make your line look flat. The API finds the constant that fits your measurements best (least squares) and shows it in the legend, for example `O(n**2) reference: n² / 4`.
+
+```bash
+curl -H "Content-Type: application/json" \
+  -d '{"x": [10, 100, 1000, 2000, 3000], "y": [14, 2282, 258631, 1024480, 2248086], "time_complexity": "O(n**2)", "label": "Bubble sort"}' \
+  http://localhost:8000/create/chart -o chart.png
+```
+
+Errors: `400` when `x` and `y` have different lengths, `422` for missing fields or unknown values.
+
 ### Production
 
 Set `ENV=production` to turn off the `/docs` page:
@@ -154,7 +179,8 @@ Images are saved to `flowcharts/` unless you set another folder with `-o`.
 - [x] Flowchart API endpoint
 - [x] Frontend upload page
 - [ ] Connect the frontend upload to the API
-- [ ] Time-complexity chart (`/create/chart`)
+- [x] Time-complexity chart API (`/create/chart`)
+- [ ] Time-complexity chart in the frontend
 
 ## Team
 

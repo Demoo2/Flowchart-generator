@@ -8,7 +8,9 @@ from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
+from pydantic import BaseModel, Field
 
+from chart import COMPLEXITIES, chart_bytes
 from flowchart import flowchart_bytes
 
 ENV = os.getenv("ENV", "development")
@@ -62,7 +64,6 @@ async def flowchart(
     raise HTTPException(400, "File is not UTF-8 text")
 
   try:
-    # graphviz is slow CPU work, keep it off the event loop
     image = await run_in_threadpool(flowchart_bytes, code, filename, lang, format)
   except SyntaxError as e:
     raise HTTPException(400, f"Syntax error on line {e.lineno}: {e.msg}")
@@ -79,6 +80,37 @@ async def flowchart(
   )
 
 
+class ChartRequest(BaseModel):
+  x: list[float] = Field(min_length=2, max_length=1000)  # input sizes
+  y: list[float] = Field(min_length=2, max_length=1000)  # measured steps for each size
+  time_complexity: Literal[tuple(COMPLEXITIES)] = "O(n)"
+  time_chart: bool = True  # draw the scaled Big-O reference curve
+  title: str = ""
+  x_label: str = ""
+  y_label: str = ""
+  label: str = ""
+  format: Literal["png", "svg", "pdf"] = "png"
+
+
 @app.post("/create/chart")
-async def chart():
-  return {"response": "matplot image chart"}
+async def chart(request: ChartRequest):
+  if len(request.x) != len(request.y):
+    raise HTTPException(400, "x and y must have the same number of values")
+
+  image = await run_in_threadpool(
+    chart_bytes,
+    request.x,
+    request.y,
+    request.time_complexity,
+    request.time_chart,
+    request.title,
+    request.x_label,
+    request.y_label,
+    request.label,
+    request.format,
+  )
+  return Response(
+    image,
+    media_type=MEDIA_TYPES[request.format],
+    headers={"Content-Disposition": f'attachment; filename="chart.{request.format}"'},
+  )
