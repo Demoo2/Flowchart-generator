@@ -38,6 +38,11 @@ async def route():
   return {"response": "Server up and runnning!"}
 
 
+@app.get("/health")
+async def health():
+  return {"status": "ok"}
+
+
 @app.post("/create/flowchart")
 async def flowchart(
   file: UploadFile,
