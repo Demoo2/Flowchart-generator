@@ -34,6 +34,10 @@ a {
   --panel-bg: rgba(35, 45, 66, 0.76);
   --panel-border: rgba(160, 176, 204, 0.2);
   --upload-bg: rgba(18, 27, 46, 0.48);
+  --error-text: #ffb4b4;
+  --error-bg: rgba(220, 70, 70, 0.12);
+  --warning-text: #f5b75c;
+  color-scheme: dark;
   min-height: 100vh;
   color: var(--text-primary);
   background:
@@ -52,6 +56,10 @@ a {
   --panel-bg: rgba(255, 255, 255, 0.75);
   --panel-border: rgba(99, 117, 150, 0.2);
   --upload-bg: rgba(245, 248, 253, 0.8);
+  --error-text: #b42318;
+  --error-bg: rgba(220, 60, 60, 0.08);
+  --warning-text: #b45309;
+  color-scheme: light;
   background:
     radial-gradient(ellipse at 50% 40%, rgba(180, 203, 246, 0.48), transparent 65%),
     var(--page-bg);
@@ -351,6 +359,292 @@ a {
   stroke-width: 1.4;
 }
 
+.choose-file-button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+  transform: none;
+}
+
+.form-error {
+  margin: 16px 0 0;
+  padding: 11px 14px;
+  color: var(--error-text);
+  background: var(--error-bg);
+  border: 1px solid rgba(240, 110, 110, 0.35);
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.result-card {
+  margin-top: 28px;
+  padding: 18px;
+  text-align: left;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 20px;
+  box-shadow: 0 22px 70px rgba(3, 9, 21, 0.22), inset 0 1px rgba(255, 255, 255, 0.035);
+}
+
+.result-header {
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.result-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+.download-button {
+  min-height: 38px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #fff;
+  background: #2858d7;
+  border: 1px solid rgba(150, 179, 255, 0.3);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 650;
+  text-decoration: none;
+  transition: background-color 150ms ease, transform 150ms ease;
+}
+
+.download-button:hover {
+  background: #3569ed;
+  transform: translateY(-1px);
+}
+
+.download-button:focus-visible,
+.chart-toggle:focus-visible {
+  outline: 2px solid #a9c3ff;
+  outline-offset: 3px;
+}
+
+.download-button svg {
+  width: 17px;
+  height: 17px;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.result-image {
+  display: block;
+  width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+  background: #fff;
+  border-radius: 12px;
+}
+
+.chart-section {
+  margin-top: 36px;
+}
+
+.chart-toggle {
+  width: 100%;
+  min-height: 52px;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-primary);
+  background: var(--panel-bg);
+  border: 1px dashed var(--panel-border);
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 150ms ease, background 150ms ease;
+}
+
+.chart-toggle:hover,
+.chart-toggle.is-open {
+  border-color: rgba(129, 169, 255, 0.55);
+}
+
+.chart-toggle svg {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  stroke: #8db1ff;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.chart-toggle .chevron {
+  margin-left: auto;
+  stroke: var(--text-muted);
+  transition: transform 160ms ease;
+}
+
+.chart-toggle.is-open .chevron {
+  transform: rotate(180deg);
+}
+
+.chart-card {
+  margin-top: 12px;
+  padding: 24px;
+  text-align: left;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 20px;
+  box-shadow: 0 22px 70px rgba(3, 9, 21, 0.22), inset 0 1px rgba(255, 255, 255, 0.035);
+}
+
+.chart-intro {
+  margin: 0 0 20px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.chart-intro code {
+  padding: 1px 6px;
+  background: rgba(141, 177, 255, 0.12);
+  border-radius: 5px;
+  font-size: 13px;
+}
+
+.field-grid {
+  margin-bottom: 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.field-grid.three {
+  margin: 14px 0 0;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.field {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field-label {
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.field-label em {
+  color: var(--text-muted);
+  font-style: normal;
+  font-weight: 400;
+}
+
+.field input,
+.field textarea,
+.field select {
+  width: 100%;
+  padding: 10px 12px;
+  color: var(--text-primary);
+  background: var(--upload-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  font: inherit;
+  font-size: 14px;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.field textarea {
+  resize: vertical;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+  color: var(--text-muted);
+  opacity: 0.75;
+}
+
+.field input:focus,
+.field textarea:focus,
+.field select:focus {
+  outline: none;
+  border-color: #81a9ff;
+  box-shadow: 0 0 0 3px rgba(129, 169, 255, 0.2);
+}
+
+.field select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.checkbox {
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.field .checkbox input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  padding: 0;
+  accent-color: #2858d7;
+  cursor: pointer;
+}
+
+.field-hint {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.field-hint.is-warning {
+  color: var(--warning-text);
+}
+
+.more-options summary {
+  width: fit-content;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.create-chart-button {
+  width: 100%;
+  margin-top: 20px;
+}
+
 @media (max-width: 600px) {
   .site-header {
     height: 64px;
@@ -388,5 +682,14 @@ a {
   .privacy-note {
     align-items: flex-start;
     line-height: 1.5;
+  }
+
+  .chart-card {
+    padding: 18px;
+  }
+
+  .field-grid,
+  .field-grid.three {
+    grid-template-columns: 1fr;
   }
 }

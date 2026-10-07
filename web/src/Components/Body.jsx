@@ -1,12 +1,45 @@
 import { useRef, useState } from 'react'
+import { MAX_UPLOAD_MB, createFlowchart } from '../api'
+import ChartForm from './ChartForm'
+import useImageResult from '../useImageResult'
+import Result from './Result'
+
+function fileProblem(file) {
+  if (!/\.(py|ipynb)$/i.test(file.name)) return 'Only Python files (.py) and Jupyter notebooks (.ipynb) are supported.'
+  if (file.size > MAX_UPLOAD_MB * 1024 * 1024) return `The file is bigger than ${MAX_UPLOAD_MB} MB.`
+  return ''
+}
 
 export default function Body() {
   const [selectedFile, setSelectedFile] = useState(null)
   const [isDragging, setIsDragging] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [flowchart, showFlowchart] = useImageResult()
   const fileInputRef = useRef(null)
 
+  const baseName = selectedFile?.name.replace(/\.(py|ipynb)$/i, '')
+
   function handleFile(file) {
-    if (file) setSelectedFile(file)
+    if (!file) return
+    setSelectedFile(file)
+    setError(fileProblem(file))
+  }
+
+  async function sendFile() {
+    const problem = fileProblem(selectedFile)
+    setError(problem)
+    if (problem) return
+
+    setIsLoading(true)
+    try {
+      const blob = await createFlowchart(selectedFile)
+      showFlowchart(blob, `${baseName}.png`)
+    } catch (requestError) {
+      setError(requestError.message)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -41,8 +74,11 @@ export default function Body() {
             ref={fileInputRef}
             className="file-input"
             type="file"
-            accept=".txt,.js,.jsx,.ts,.tsx,.py,.java,.c,.cpp,.cs,.go,.rs,.php,.rb,.json"
-            onChange={(event) => handleFile(event.target.files[0])}
+            accept=".py,.ipynb"
+            onChange={(event) => {
+              handleFile(event.target.files[0])
+              event.target.value = ''  // lets the same file be picked again after editing it
+            }}
             aria-label="Choose a source code file"
           />
           <div className="upload-icon" aria-hidden="true">
@@ -61,7 +97,7 @@ export default function Body() {
           <h2>{selectedFile ? selectedFile.name : 'Drop your file here'}</h2>
           <p>
             {selectedFile
-              ? `${(selectedFile.size / 1024).toFixed(1)} KB · Ready to upload`
+              ? `${(selectedFile.size / 1024).toFixed(1)} KB · ${isLoading ? 'Creating flowchart…' : 'Press the arrow to create the flowchart'}`
               : 'or click below to browse from your computer'}
           </p>
           <button
@@ -75,20 +111,28 @@ export default function Body() {
             </svg>
             {selectedFile ? 'Choose another file' : 'Choose a file'}
           </button>
-          <span className="file-types">Supports source code files · Max 10 MB</span>
+          <span className="file-types">Python (.py) and Jupyter notebooks (.ipynb) · Max {MAX_UPLOAD_MB} MB</span>
           <button
             className="send-file-button"
             type="button"
-            aria-label="Send selected file"
-            title="Send selected file"
-            disabled={!selectedFile}
+            aria-label="Create flowchart"
+            title="Create flowchart"
+            disabled={!selectedFile || isLoading}
+            aria-busy={isLoading}
+            onClick={sendFile}
           >
-            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-              <path d="m3 9 13-6-4.5 14-2.5-6-6-2Z" />
-              <path d="m9 11 4-4" />
-            </svg>
+            {isLoading ? (
+              <span className="spinner" aria-hidden="true" />
+            ) : (
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path d="m3 9 13-6-4.5 14-2.5-6-6-2Z" />
+                <path d="m9 11 4-4" />
+              </svg>
+            )}
           </button>
         </div>
+
+        {error && <p className="form-error" role="alert">{error}</p>}
 
         <div className="privacy-note">
           <svg viewBox="0 0 18 18" fill="none" aria-hidden="true">
@@ -97,6 +141,10 @@ export default function Body() {
           </svg>
           Your files stay private and are only used to create your flowchart.
         </div>
+
+        {flowchart && <Result title="Flowchart" result={flowchart} />}
+
+        <ChartForm baseName={baseName} />
       </section>
     </main>
   )

@@ -76,7 +76,11 @@ npm install
 npm run dev
 ```
 
-The website runs at http://localhost:5173.
+The website runs at http://localhost:5173. It talks to the API at http://localhost:8000; if the API runs somewhere else, set `VITE_API_URL` (for example in `web/.env`):
+
+```
+VITE_API_URL=https://your-api.example.com
+```
 
 ## API
 
@@ -135,7 +139,7 @@ Send the input sizes and the number of steps your algorithm took for each size a
 | `title`, `x_label`, `y_label` | string | automatic | Chart texts |
 | `format` | `png`, `svg`, `pdf` | `png` | Image format |
 
-The reference curve is **scaled automatically**. Big-O ignores constant factors, so bubble sort really does about n²/4 swaps, and a plain n² curve would make your line look flat. The API finds the constant that fits your measurements best (least squares) and shows it in the legend, for example `O(n**2) reference: n² / 4`.
+The reference curve is **scaled automatically**. Big-O ignores constant factors, so bubble sort really does about n²/4 swaps, and a plain n² curve would make your line look flat. The API finds the constant that fits your measurements best (least squares) and multiplies the curve by it, so the curve follows your line.
 
 ```bash
 curl -H "Content-Type: application/json" \
@@ -178,9 +182,9 @@ Images are saved to `flowcharts/` unless you set another folder with `-o`.
 - [x] Flowchart engine
 - [x] Flowchart API endpoint
 - [x] Frontend upload page
-- [ ] Connect the frontend upload to the API
+- [x] Connect the frontend upload to the API
 - [x] Time-complexity chart API (`/create/chart`)
-- [ ] Time-complexity chart in the frontend
+- [x] Time-complexity chart in the frontend
 
 ## Team
 
