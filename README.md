@@ -4,9 +4,11 @@ Upload a Python file, get back flowchart.
 
 At school we have to hand in a flowchart and time-complexity chart for every algorithm we write. Drawing them by hand takes longer than writing the code, so we built a web app that draws them for us.
 
-![Flowchart generated from a binary search program](docs/example.png)
-
-*Generated from a binary search program. Labels are in Slovak by default; this one uses `lang=en`.*
+<p align="center">
+  <img src="docs/example.png" alt="Flowchart generated from a binary search program" width="450">
+  <br>
+  <em>Generated from a binary search program. Labels are in Slovak by default; this one uses <code>lang=en</code>. Click to enlarge.</em>
+</p>
 
 ## Features
 
