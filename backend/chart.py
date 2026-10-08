@@ -28,6 +28,11 @@ def fit_scale(y, f):
     return c if c > 0 else 1.0
 
 
+def plain(text):
+    """User text drawn as typed: matplotlib would read $...$ as a math formula."""
+    return text.replace("$", r"\$")
+
+
 def chart_bytes(
     x, 
     y, 
@@ -45,16 +50,16 @@ def chart_bytes(
 
     fig = Figure(figsize=(8, 6))
     ax = fig.subplots()
-    ax.plot(x, y, "o-", color="#2563eb", linewidth=2.5, label=label or "Your algorithm")
+    ax.plot(x, y, "o-", color="#2563eb", linewidth=2.5, label=plain(label) or "Your algorithm")
 
     if time_chart:
         f, term = COMPLEXITIES[time_complexity]
         c = fit_scale(y, f(x))
         ax.plot(x, c * f(x), "--", color="gray", label=f"{time_complexity.strip('O()')}")
 
-    ax.set_title(title or (f"Time Complexity: {time_complexity}" if time_chart else "Number of steps"), fontsize=14, fontweight="bold")
-    ax.set_xlabel(x_label or "Input size (n)", fontsize=12)
-    ax.set_ylabel(y_label or "Number of steps", fontsize=12)
+    ax.set_title(plain(title) or (f"Time Complexity: {time_complexity}" if time_chart else "Number of steps"), fontsize=14, fontweight="bold")
+    ax.set_xlabel(plain(x_label) or "Input size (n)", fontsize=12)
+    ax.set_ylabel(plain(y_label) or "Number of steps", fontsize=12)
     ax.legend(fontsize=11)
     ax.grid(True, alpha=0.3)
     fig.tight_layout()

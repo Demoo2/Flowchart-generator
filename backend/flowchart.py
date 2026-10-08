@@ -15,6 +15,7 @@ import argparse
 import ast
 import html
 import json
+import subprocess
 import sys
 import textwrap
 from pathlib import Path
@@ -254,13 +255,19 @@ def parse(code, notebook=False):
     """Text of a .py file, or JSON text of a .ipynb notebook -> one ast.Module."""
     if notebook:
         nb = json.loads(code)
-        if not isinstance(nb, dict):
+        cells = nb.get("cells") if isinstance(nb, dict) else None
+        if not isinstance(cells, list):
             raise ValueError("not a Jupyter notebook")
         body = []
-        for i, cell in enumerate(nb.get("cells", [])):
-            if cell.get("cell_type") != "code":
+        for i, cell in enumerate(cells):
+            if not isinstance(cell, dict) or cell.get("cell_type") != "code":
                 continue
-            code = "".join(cell.get("source", ""))
+            source = cell.get("source", "")
+            if isinstance(source, list):
+                source = "".join(part for part in source if isinstance(part, str))
+            if not isinstance(source, str):
+                continue
+            code = source
             code = "\n".join(l for l in code.splitlines() if not l.lstrip().startswith(("%", "!")))
             try:
                 body += ast.parse(code).body
@@ -318,10 +325,20 @@ def diagram(tree, lang="sk", fmt="png"):
     return d.g
 
 
-def flowchart_bytes(code, filename="code.py", lang="sk", fmt="png"):
-    """Image of the flowchart for uploaded code, rendered in memory (for the web API)."""
+def flowchart_bytes(code, filename="code.py", lang="sk", fmt="png", timeout=30):
+    """Image of the flowchart for uploaded code, rendered in memory (for the web API).
+
+    Raises subprocess.TimeoutExpired when Graphviz needs longer than timeout seconds
+    (huge files), so one upload cannot keep the server busy for minutes.
+    """
     tree = parse(code, notebook=filename.endswith(".ipynb"))
-    return diagram(tree, lang, fmt).pipe()
+    source = diagram(tree, lang, fmt).source
+    try:
+        result = subprocess.run(["dot", f"-T{fmt}"], input=source.encode(), capture_output=True,
+                                timeout=timeout, check=True)
+    except FileNotFoundError:
+        raise graphviz.ExecutableNotFound(["dot"]) from None
+    return result.stdout
 
 
 def process(path, out_dir, lang, fmt):

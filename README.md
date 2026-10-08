@@ -39,6 +39,8 @@ backend/
   app.py          FastAPI server
   flowchart.py    flowchart engine (also works as a command-line tool)
   chart.py        time-complexity chart
+  Dockerfile      image for Render (Python + Graphviz)
+  requirements.txt
 web/              React + Vite + Tailwind frontend
 docs/             images for this README
 ```
@@ -62,7 +64,7 @@ docs/             images for this README
 
 ```bash
 cd backend
-pip install fastapi uvicorn python-multipart graphviz matplotlib numpy
+pip install -r requirements.txt
 uvicorn app:app --reload
 ```
 
@@ -121,7 +123,7 @@ Errors come back as JSON, `{"detail": "..."}`:
 | Status | When |
 |---|---|
 | `400` | Not a `.py`/`.ipynb` file, file isn't UTF-8 text, syntax error in the code (the message gives the line), or the file has no code |
-| `413` | File larger than 5 MB |
+| `413` | File larger than 5 MB, or code so big that drawing it takes over 30 seconds |
 | `422` | Unknown `lang` or `format` value |
 | `500` | Graphviz is not installed on the server |
 
@@ -147,17 +149,55 @@ curl -H "Content-Type: application/json" \
   http://localhost:8000/create/chart -o chart.png
 ```
 
-Errors: `400` when `x` and `y` have different lengths, `422` for missing fields or unknown values.
+Errors: `400` when `x` and `y` have different lengths, `422` for missing fields, unknown values or texts longer than 120 characters.
 
-### Production
+## Deployment
 
-Set `ENV=production` to turn off the `/docs` page:
+The API runs on [Render](https://render.com) as a Docker service, and the website on [Cloudflare Pages](https://pages.cloudflare.com). Deploy the API first, because the website needs its address.
+
+### API on Render
+
+Render's normal Python environment can't install Graphviz, so the API uses the `backend/Dockerfile`. It installs Graphviz and fonts, turns off `/docs` and runs as a non-root user.
+
+1. **New → Web Service**, connect this repository.
+2. Settings:
+
+   | Setting | Value |
+   |---|---|
+   | Language | Docker |
+   | Root Directory | `backend` |
+   | Dockerfile Path | `./Dockerfile` |
+   | Health Check Path | `/health` |
+
+3. After the first deploy, copy the service address, e.g. `https://flowchart-api.onrender.com`.
+
+On the free plan the API goes to sleep after 15 minutes without requests. The next request wakes it up, which takes about a minute.
+
+### Website on Cloudflare Pages
+
+1. **Workers & Pages → Create → Pages → Connect to Git**, pick this repository.
+2. Settings:
+
+   | Setting | Value |
+   |---|---|
+   | Root directory | `web` |
+   | Build command | `npm run build` |
+   | Build output directory | `dist` |
+   | Environment variable | `VITE_API_URL` = your Render address |
+
+   The Node version comes from `web/.node-version`. `VITE_API_URL` is read when the site is built, so after changing it, redeploy the site.
+
+### Connect them
+
+On Render, add the environment variable `ALLOWED_ORIGINS` with your website address, e.g. `https://flowchart-generator.pages.dev`. Separate several addresses with commas, and don't put a `/` at the end. Without it, any website can use your API.
+
+### Running the Docker image locally
 
 ```bash
-ENV=production uvicorn app:app --host 0.0.0.0 --port 8000
+cd backend
+docker build -t flowchart-api .
+docker run -p 8000:10000 flowchart-api
 ```
-
-The server needs Graphviz installed, just like when running locally.
 
 ## Command-line use
 

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { COMPLEXITIES, createChart, parseNumbers } from '../api'
+import { COMPLEXITIES, MAX_TEXT, createChart, parseNumbers } from '../api'
 import useImageResult from '../useImageResult'
 import Result from './Result'
 
@@ -139,6 +139,7 @@ export default function ChartForm({ baseName }) {
               <span className="field-label">Algorithm name <em>(optional)</em></span>
               <input
                 type="text"
+                maxLength={MAX_TEXT}
                 value={label}
                 onChange={(event) => setLabel(event.target.value)}
                 placeholder="Bubble sort"
@@ -151,15 +152,15 @@ export default function ChartForm({ baseName }) {
             <div className="field-grid three">
               <label className="field">
                 <span className="field-label">Title</span>
-                <input type="text" value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Time Complexity: O(n**2)" />
+                <input type="text" maxLength={MAX_TEXT} value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Time Complexity: O(n**2)" />
               </label>
               <label className="field">
                 <span className="field-label">X axis</span>
-                <input type="text" value={xLabel} onChange={(event) => setXLabel(event.target.value)} placeholder="Input size (n)" />
+                <input type="text" maxLength={MAX_TEXT} value={xLabel} onChange={(event) => setXLabel(event.target.value)} placeholder="Input size (n)" />
               </label>
               <label className="field">
                 <span className="field-label">Y axis</span>
-                <input type="text" value={yLabel} onChange={(event) => setYLabel(event.target.value)} placeholder="Number of steps" />
+                <input type="text" maxLength={MAX_TEXT} value={yLabel} onChange={(event) => setYLabel(event.target.value)} placeholder="Number of steps" />
               </label>
             </div>
           </details>

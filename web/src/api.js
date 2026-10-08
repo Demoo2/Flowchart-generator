@@ -1,6 +1,8 @@
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
+// Production builds must get VITE_API_URL (e.g. on Cloudflare); localhost is only a dev fallback
+const API_URL = (import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:8000' : '')).replace(/\/+$/, '')
 
 export const MAX_UPLOAD_MB = 5
+export const MAX_TEXT = 120  // same limit as the API
 
 export const COMPLEXITIES = [
   { value: 'O(1)', label: 'O(1)' },
@@ -13,6 +15,7 @@ export const COMPLEXITIES = [
 
 // Sends a request and returns the image Blob, or throws an Error with a readable message.
 async function requestImage(path, options) {
+  if (!API_URL) throw new Error('The website is not connected to the API (VITE_API_URL is not set).')
   let response
   try {
     response = await fetch(`${API_URL}${path}`, { method: 'POST', ...options })
